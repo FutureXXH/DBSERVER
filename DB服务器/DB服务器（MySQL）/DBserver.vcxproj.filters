@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="AppManager.cpp">
+      <Filter>app</Filter>
+    </ClCompile>
+    <ClCompile Include="User_Data.cpp">
+      <Filter>app</Filter>
+    </ClCompile>
+    <ClCompile Include="AppLogin.cpp">
+      <Filter>app</Filter>
+    </ClCompile>
+    <ClCompile Include="DBBuffer.cpp">
+      <Filter>DBengine</Filter>
+    </ClCompile>
+    <ClCompile Include="DBConnector.cpp">
+      <Filter>DBengine</Filter>
+    </ClCompile>
+    <ClCompile Include="DBManager.cpp">
+      <Filter>DBengine</Filter>
+    </ClCompile>
+    <ClCompile Include="DBManager_Account.cpp">
+      <Filter>DBengine</Filter>
+    </ClCompile>
+    <ClCompile Include="DBManager_Read.cpp">
+      <Filter>DBengine</Filter>
+    </ClCompile>
+    <ClCompile Include="DBManager_Write.cpp">
+      <Filter>DBengine</Filter>
+    </ClCompile>
+    <ClCompile Include="MySQLConnector.cpp">
+      <Filter>DBengine</Filter>
+    </ClCompile>
+    <ClCompile Include="TCPserver.cpp">
+      <Filter>TCPSERVER</Filter>
+    </ClCompile>
+    <ClCompile Include="start.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AppManager.h">
+      <Filter>app</Filter>
+    </ClInclude>
+    <ClInclude Include="User_Data.h">
+      <Filter>app</Filter>
+    </ClInclude>
+    <ClInclude Include="AppLogin.h">
+      <Filter>app</Filter>
+    </ClInclude>
+    <ClInclude Include="DBBuffer.h">
+      <Filter>DBengine</Filter>
+    </ClInclude>
+    <ClInclude Include="DBConnector.h">
+      <Filter>DBengine</Filter>
+    </ClInclude>
+    <ClInclude Include="DBManager.h">
+      <Filter>DBengine</Filter>
+    </ClInclude>
+    <ClInclude Include="MySQLConnector.h">
+      <Filter>DBengine</Filter>
+    </ClInclude>
+    <ClInclude Include="SafeThreadPool.h">
+      <Filter>DBengine</Filter>
+    </ClInclude>
+    <ClInclude Include="TCPserver.h">
+      <Filter>TCPSERVER</Filter>
+    </ClInclude>
+    <ClInclude Include="IDefine.h">
+      <Filter>TCPSERVER</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="app">
+      <UniqueIdentifier>{97195ec6-d53e-4f2b-bc71-eab91aa04dfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DBengine">
+      <UniqueIdentifier>{71108648-a6c2-437c-beaf-360dddbe38a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TCPSERVER">
+      <UniqueIdentifier>{9f796255-8f53-40fe-9442-40a77137ab88}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
