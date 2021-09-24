@@ -1,5 +1,8 @@
 #include "TCPserver.h"
 
+
+Tcpserver* __TCPSERVER = nullptr;
+
 bool Tcpserver::InitServer(int port)
 {
     WSADATA wsd;
@@ -55,11 +58,11 @@ bool Tcpserver::StartServer(int IOthreadnum)
     //把服务器监听sock加入进监听里
     CreateIoCompletionPort((HANDLE)ServerSocket, CompletionPort, (DWORD)ServerSocket, 0);
 
-
+    
 
     for (int i = 0; i < IOthreadnum; i++)
     {
-        thread* threadp = new thread(&Tcpserver::ProcessIO, this, CompletionPort);
+        thread* threadp = new thread(&Tcpserver::ProcessRead, this, CompletionPort);
     }
 
 
@@ -91,7 +94,7 @@ bool Tcpserver::StartServer(int IOthreadnum)
 
 
 
-void Tcpserver::ProcessIO(LPVOID lpParam)
+void Tcpserver::ProcessRead(LPVOID lpParam)
 {
     SERVERPRINT_INFO << "io线程开始运行" << std::endl;
 
@@ -184,16 +187,39 @@ void Tcpserver::ProcessIO(LPVOID lpParam)
 
             memcpy(&head, PerIoData->data, 4);
             memcpy(&size, PerIoData->data + 4, 4);
+
             SERVERPRINT_INFO << "头" << head  << std::endl;
             switch (head)
             {
             case 1000:
-                app::onLogin_1000();
+            {
+                if (BytesTransferred < 56) break;
+                char account[20];
+                char password[20];
+                int index;
+                unsigned int playersocket;
+                memset(account, 0, 20);
+                memset(password, 0, 20);
+                memcpy(account, PerIoData->data + 8, 20);
+                memcpy(password, PerIoData->data + 28, 20);
+                memcpy(&index, PerIoData->data + 48, 4);
+                memcpy(&playersocket, PerIoData->data + 52, 4);
+                app::onLogin_1000(account, password, csocket,playersocket,index);
+            }
                 break;
             case 1001:
-                app::onRegister_1001();
+            {
+                if (BytesTransferred < 48) break;
+                char account[20];
+                char password[20];
+                memset(account,0,20);
+                memset(password, 0, 20);
+                memcpy(account, PerIoData->data + 8, 20);
+                memcpy(password, PerIoData->data + 28, 20);
+                app::onRegister_1001(account, password);
+            }
                 break;
-
+          
             default:
                 break;
             }
@@ -211,10 +237,25 @@ void Tcpserver::ProcessIO(LPVOID lpParam)
         PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
         PerIoData->DataBuf.len = DATA_BUFSIZE;
         WSARecv(csocket, &PerIoData->DataBuf, 1, &dwRecv, &Flags, &PerIoData->Overlapped, NULL);
+
+        
     }
 
 
 
 
+
+}
+
+void Tcpserver::Send(SOCKET sendsocket, int head, char* sendbuffer, int sendbuffsize)
+{
+    char* buff = new char[sendbuffsize + 8];
+    memset(buff, 0, sendbuffsize + 8);
+    memcpy(buff, (char*)&head, 4);
+    memcpy(buff+4, (char*)&sendbuffsize, 4);
+    memcpy(buff + 8, sendbuffer, sendbuffsize);
+
+    send(sendsocket, buff, sendbuffsize + 8, 0);
+    delete[] buff;
 
 }

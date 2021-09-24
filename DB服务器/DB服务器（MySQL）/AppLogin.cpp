@@ -5,15 +5,24 @@ namespace app
 {
 
 	//登录
-	void onLogin_1000()
+	void onLogin_1000(char* LogAccount, char* LogPassword,SOCKET gameserversocket, unsigned int playersocket, int index)
 	{
-		std::string account = "xu";
-		std::string password = "6666";
+		std::string account = LogAccount;
+		std::string password = LogPassword;
 
 		auto mem = Findmember(account);
 		if (mem == nullptr)
 		{
 			std::cout << "登录查找为null" << std::endl;
+			//无相关账号返回登录结果  10001 + -1 + 玩家socket+ 玩家索引
+			char sendbuff[12];
+			int type = -1;
+			memcpy(sendbuff, (char*)&type, 4);
+			memcpy(sendbuff + 4, (char*)&playersocket, 4);
+			memcpy(sendbuff + 8, (char*)&index, 4);
+			__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 12);
+
+			std::cout << "登录失败" << std::endl;
 			return;
 		}
 
@@ -30,13 +39,24 @@ namespace app
 
 
 			db->PushToWorkThread(buff);
-
-
-
-
+			//成功返回登录结果  10001 + 玩家id + 玩家socket+ 玩家索引
+			char sendbuff[12];
+			memcpy(sendbuff, (char*)&mem->ID, 4);
+			memcpy(sendbuff+4, (char*)&playersocket, 4);
+			memcpy(sendbuff+8, (char*)&index, 4);
+			__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 12);
+			
+			
 			return;
 			
 		}
+		//密码错误返回登录结果  10001 + -2 + 玩家socket+ 玩家索引
+		char sendbuff[12];
+		int type = -2;
+		memcpy(sendbuff, (char*)&type, 4);
+		memcpy(sendbuff + 4, (char*)&playersocket, 4);
+		memcpy(sendbuff + 8, (char*)&index, 4);
+		__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 12);
 
 		std::cout << "登录失败" << std::endl;
 
@@ -44,10 +64,10 @@ namespace app
 	}
 
 	//注册
-	void onRegister_1001()
+	void onRegister_1001(char* RegAccount, char* RegPassword)
 	{
-		std::string account = "xu2";
-		std::string password = "6666";
+		std::string account = RegAccount;
+		std::string password = RegPassword;
 		auto mem = Findmember(account);
 		if (mem != nullptr)
 		{
@@ -84,7 +104,11 @@ namespace app
 	{
 		int memid;
 		buff->r(memid);
-		cout << "db1000 successful" << memid << endl;
+		SOCKET csocket;
+		buff->r(csocket);
+		cout << "登录成功" << memid << endl;
+	    
+
 	}
 
 	void db_1001(DBBuffer* buff)

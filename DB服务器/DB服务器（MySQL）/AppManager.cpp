@@ -23,13 +23,13 @@ namespace app
 
        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-       Tcpserver* server = new Tcpserver();
-       if (!server->InitServer(6667))
+       __TCPSERVER = new Tcpserver();
+       if (!__TCPSERVER->InitServer(6667))
        {
            SERVERPRINT_INFO << "初始化服务器失败 " << endl;
            return -1;
        }
-       if (!server->StartServer(2))
+       if (!__TCPSERVER->StartServer(2))
        {
            SERVERPRINT_INFO << "DB服务器开启失败 " << endl;
            return -2;

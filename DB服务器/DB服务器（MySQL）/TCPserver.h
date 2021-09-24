@@ -23,9 +23,10 @@ public:
 
 	bool InitServer(int port);
 	bool StartServer(int IOthreadnum);
-	void ProcessIO(LPVOID lpParam);
+	void ProcessRead(LPVOID lpParam);
+	void Send(SOCKET sendsocket,int head,char * sendbuffer,int sendsize);
 };
 
-
+extern Tcpserver* __TCPSERVER;
 #endif // !__TCPSERVER_H
 
