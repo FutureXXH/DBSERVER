@@ -209,14 +209,18 @@ void Tcpserver::ProcessRead(LPVOID lpParam)
                 break;
             case 1001:
             {
-                if (BytesTransferred < 48) break;
+                if (BytesTransferred < 56) break;
                 char account[20];
                 char password[20];
+                int index;
+                unsigned int playersocket;
                 memset(account,0,20);
                 memset(password, 0, 20);
                 memcpy(account, PerIoData->data + 8, 20);
                 memcpy(password, PerIoData->data + 28, 20);
-                app::onRegister_1001(account, password);
+                memcpy(&index, PerIoData->data + 48, 4);
+                memcpy(&playersocket, PerIoData->data + 52, 4);
+                app::onRegister_1001(account, password, csocket, playersocket, index);
             }
                 break;
           

@@ -53,6 +53,13 @@ void updateLoignTime(DBBuffer* buff,DBConnector* db)
 	cout << "更新时间" << endl;
 	int memid;
 	buff->r(memid);
+
+	/*//重新将buff回收到内存池中
+	buff->Clear();
+	__DBManager->_PoolBuffs.push(buff);*/
+
+
+
 	int curtime = time(NULL);
 	stringstream sql;
 	sql << "update testaccount.account set logintime = " << curtime << " where ID =" << memid << ";";
@@ -75,11 +82,21 @@ void updateLoignTime(DBBuffer* buff,DBConnector* db)
 void RegAccount(DBBuffer* buff, DBConnector* db)
 {
 	
-	
+	SOCKET gameserversocket;
+	unsigned int playersocket;
+	int index;
 	char account[20];
 	char password[20];
 	buff->r(account,20);
 	buff->r(password, 20);
+	buff->r(gameserversocket);
+	buff->r(playersocket);
+	buff->r(index);
+
+	/*//重新将buff回收到内存池中
+	buff->Clear();
+	__DBManager->_PoolBuffs.push(buff);*/
+
 	int curtime = time(NULL);
 	int state = 1;
 	stringstream sql;
@@ -93,6 +110,16 @@ void RegAccount(DBBuffer* buff, DBConnector* db)
 	if (ret != 0)
 	{
 		cout << "reg 1001 failed:" << mysql->GetErrorStr() << " " << ret << endl;
+		auto buf2 = __DBManager->Popbuff();
+		int errid = -2;
+		buf2->begin(1001);
+		buf2->s(errid);
+		buf2->s(account, 20);
+		buf2->s(password, 20);
+		buf2->s(gameserversocket);
+		buf2->s(playersocket);
+		buf2->s(index);
+		__DBManager->PushToMainThread(buf2);
 		return;
 	}
 
@@ -106,6 +133,9 @@ void RegAccount(DBBuffer* buff, DBConnector* db)
 	buf2->s(memid);
 	buf2->s(account, 20);
 	buf2->s(password, 20);
+	buf2->s(gameserversocket);
+	buf2->s(playersocket);
+	buf2->s(index);
 	__DBManager->PushToMainThread(buf2);
 }
 
@@ -127,6 +157,7 @@ void DBManager::Thread_UserAccount(DBBuffer* buff)
 	default:
 		break;
 	}
+
 }
 
 

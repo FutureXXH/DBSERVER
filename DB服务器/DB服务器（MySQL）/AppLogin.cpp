@@ -38,6 +38,7 @@ namespace app
 			buff->s(mem->ID);
 
 
+
 			db->PushToWorkThread(buff);
 			//成功返回登录结果  10001 + 玩家id + 玩家socket+ 玩家索引
 			char sendbuff[12];
@@ -64,7 +65,7 @@ namespace app
 	}
 
 	//注册
-	void onRegister_1001(char* RegAccount, char* RegPassword)
+	void onRegister_1001(char* RegAccount, char* RegPassword, SOCKET gameserversocket, unsigned int playersocket, int index)
 	{
 		std::string account = RegAccount;
 		std::string password = RegPassword;
@@ -72,6 +73,14 @@ namespace app
 		if (mem != nullptr)
 		{
 			std::cout << "账号已存在" << std::endl;
+			int errid = -1;
+			char sendbuff[52];
+			memcpy(sendbuff, (char*)&errid, 4);
+			memcpy(sendbuff + 4, (char*)&account, 20);
+			memcpy(sendbuff + 24, (char*)&password, 20);
+			memcpy(sendbuff + 44, (char*)&playersocket, 4);
+			memcpy(sendbuff + 48, (char*)&index, 4);
+			__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 52);
 			return;
 		}
 
@@ -80,7 +89,9 @@ namespace app
 		buff->begin(1001);
 		buff->s((char*)account.c_str(),20);
 		buff->s((char*)password.c_str(), 20);
-
+		buff->s(gameserversocket);
+		buff->s(playersocket);
+		buff->s(index);
 		db->PushToWorkThread(buff);
 	}
 
@@ -113,25 +124,49 @@ namespace app
 
 	void db_1001(DBBuffer* buff)
 	{
+
 		int memid;
 		char account[20];
 		char password[20];
+		SOCKET gameserversocket;
+		unsigned int playersocket;
+		int index;
 		memset(account, 0, 20);
 		memset(password, 0, 20);
 		buff->r(memid);
 		buff->r(account);
 		buff->r(password);
-		//插入内存中
-		app::USER_MEMBER_BASE* mem = new app::USER_MEMBER_BASE();
-		mem->ID = memid;
-		memcpy(mem->username, account, 20);
-		memcpy(mem->password, password, 20);
-		mem->Createtime = time(NULL);
-		mem->Lastlogintime = time(NULL);
+		buff->r(gameserversocket);
+		buff->r(playersocket);
+		buff->r(index);
+		if (memid >= 0)  //注册成功操作
+		{
+			//插入内存中
+			app::USER_MEMBER_BASE* mem = new app::USER_MEMBER_BASE();
+			mem->ID = memid;
+			memcpy(mem->username, account, 20);
+			memcpy(mem->password, password, 20);
+			mem->Createtime = time(NULL);
+			mem->Lastlogintime = time(NULL);
 
-		__AccountsID.insert(make_pair(memid,mem));
+			__AccountsID.insert(make_pair(memid, mem));
 
-		cout << "db1001 successful" << memid  <<" " << account  <<" " << password << endl;
+			cout << "db1001 successful" << memid << " " << account << " " << password << endl;
+			cout << "正在返回注册成功信息" << memid << " " << account << " " << password << endl;
+
+		}
+		else  //注册失败操作
+		{
+			cout << "正在返回注册失败信息" << memid << " " << account << " " << password << endl;
+		}
+		char sendbuff[52];
+		memcpy(sendbuff, (char*)&memid, 4);
+		memcpy(sendbuff + 4, (char*)&account, 20);
+		memcpy(sendbuff + 24, (char*)&password, 20);
+		memcpy(sendbuff + 44, (char*)&playersocket, 4);
+		memcpy(sendbuff + 48, (char*)&index, 4);
+		__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 52);
+
 	}
 
 

@@ -82,7 +82,7 @@ void DBManager::InitDB()
     sprintf(_GameDBXML->dbname, "testuserdata");
     sprintf(_GameDBXML->ip, "127.0.0.1");
     _GameDBXML->port = 3306;
-    sprintf(_GameDBXML->username, "");
+    sprintf(_GameDBXML->username, "test1");
     sprintf(_GameDBXML->userpass, "");
 
     //账号数据库配置
@@ -90,7 +90,7 @@ void DBManager::InitDB()
     sprintf(_AccountXML->dbname, "testaccount");
     sprintf(_AccountXML->ip, "127.0.0.1");
     _AccountXML->port = 3306;
-    sprintf(_AccountXML->username, "");
+    sprintf(_AccountXML->username, "test1");
     sprintf(_AccountXML->userpass, "");
 
     auto readfun = std::bind(&DBManager::Thread_UserRead, this, std::placeholders::_1);
