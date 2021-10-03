@@ -90,7 +90,7 @@ namespace db
 				m_Buf[SendE+i] = p[i];
 			}*/
 			SendE += size;
-			std::cout << "s:  " << SendE << "|" << size << "|" << CurLength  << "   "  << v << std::endl;
+			//std::cout << "s:  " << SendE << "|" << size << "|" << CurLength  << "   "  << v << std::endl;
 		}
 	}
 
@@ -102,7 +102,7 @@ namespace db
 		memcpy(&v, m_Buf+ReceE, size);
 		ReceE += size;
 
-		std::cout << "r:  " << ReceE << "|" << size << "|" << CurLength << "   " << v<< std::endl;
+		//std::cout << "r:  " << ReceE << "|" << size << "|" << CurLength << "   " << v<< std::endl;
 	}
 
 }
