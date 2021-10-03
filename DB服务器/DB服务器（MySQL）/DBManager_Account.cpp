@@ -50,13 +50,15 @@ void DBManager::Thread_beginAccount()
 
 void updateLoignTime(DBBuffer* buff,DBConnector* db)
 {
-	cout << "更新时间" << endl;
+	//cout << "更新时间" << endl;
 	int memid;
+	SOCKET gameserversock;
+	SOCKET playersock;
 	buff->r(memid);
+	buff->r(gameserversock);
+	buff->r(playersock);
 
-	/*//重新将buff回收到内存池中
-	buff->Clear();
-	__DBManager->_PoolBuffs.push(buff);*/
+	std::cout << memid << "|" << gameserversock << "|" << playersock << std::endl;
 
 
 
@@ -70,11 +72,13 @@ void updateLoignTime(DBBuffer* buff,DBConnector* db)
 		cout << "loign 1000 failed:" << mysql->GetErrorStr() << " " << ret << endl;
 		return;
 	}
-	cout << "更新时间成功 " << memid << endl;
+	//cout << "更新时间成功 " << memid << endl;
 
 	auto buf2 = __DBManager->Popbuff();
 	buf2->begin(1000);
 	buf2->s(memid);
+	buf2->s(gameserversock);
+	buf2->s(playersock);
 	__DBManager->PushToMainThread(buf2);
 }
 
@@ -93,9 +97,8 @@ void RegAccount(DBBuffer* buff, DBConnector* db)
 	buff->r(playersocket);
 	buff->r(index);
 
-	/*//重新将buff回收到内存池中
-	buff->Clear();
-	__DBManager->_PoolBuffs.push(buff);*/
+	
+
 
 	int curtime = time(NULL);
 	int state = 1;
@@ -137,6 +140,7 @@ void RegAccount(DBBuffer* buff, DBConnector* db)
 	buf2->s(playersocket);
 	buf2->s(index);
 	__DBManager->PushToMainThread(buf2);
+
 }
 
 void DBManager::Thread_UserAccount(DBBuffer* buff)

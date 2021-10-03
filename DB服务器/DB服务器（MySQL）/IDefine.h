@@ -18,6 +18,8 @@ typedef struct
 	WSABUF DataBuf;
 	char data[DATA_BUFSIZE];
 	SOCKET sock;
+	int Type;  // 1 接收 2 发送
+
 }PER_IO_OPERATION_DATA, * LPPER_IO_OPERATION_DATA;
 
 

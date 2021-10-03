@@ -127,7 +127,7 @@ void DBManager::update()
         DBBuffer* buff = nullptr;
         _logicBuffs.try_pop(buff);
         if (buff == nullptr)break;
-
+        std::cout << "逻辑主线程处理" << std::endl;
         //逻辑处理==========(主线程逻辑处理)
         app::OnDBCommand(buff);
         //逻辑处理完毕后====

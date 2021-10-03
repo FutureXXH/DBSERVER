@@ -8,8 +8,8 @@
 namespace app
 {
 
-	extern void onLogin_1000(char* LogAccount, char* LogPassword, SOCKET gameserversocket, unsigned int playersocket, int index);
-	extern void onRegister_1001(char* RegAccount, char* RegPassword, SOCKET gameserversocket, unsigned int playersocket, int index);
+	extern void onLogin_1000(char* LogAccount, char* LogPassword, SOCKET gameserversocket, SOCKET playersocket);
+	extern void onRegister_1001(char* RegAccount, char* RegPassword, SOCKET gameserversocket, SOCKET playersocket);
 	extern void on_3000();
 
 	extern void OnDBCommand(void* buf);

@@ -3,7 +3,7 @@
 
 #include <string>
 
-
+#include <iostream>
 
 namespace db
 {
@@ -78,7 +78,7 @@ namespace db
 
 
 	template<class T>
-	inline void DBBuffer::s(const T v)
+	 void DBBuffer::s(const T v)
 	{
 		int size = sizeof(T);
 		if (SendE + size < CurLength)
@@ -90,16 +90,19 @@ namespace db
 				m_Buf[SendE+i] = p[i];
 			}*/
 			SendE += size;
+			std::cout << "s:  " << SendE << "|" << size << "|" << CurLength  << "   "  << v << std::endl;
 		}
 	}
 
 	template<class T>
-	inline void DBBuffer::r(T& v)
+	 void DBBuffer::r(T& v)
 	{
 		int size = sizeof(T);
 		if (ReceE + size >= CurLength) return;
 		memcpy(&v, m_Buf+ReceE, size);
 		ReceE += size;
+
+		std::cout << "r:  " << ReceE << "|" << size << "|" << CurLength << "   " << v<< std::endl;
 	}
 
 }

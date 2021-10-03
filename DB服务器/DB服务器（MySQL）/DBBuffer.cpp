@@ -24,3 +24,4 @@ void db::DBBuffer::r(void* v, const int len)
 	memcpy(v, &m_Buf[ReceE], len);
 	ReceE += len;
 }
+

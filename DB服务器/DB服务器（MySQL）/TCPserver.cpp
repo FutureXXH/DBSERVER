@@ -74,6 +74,7 @@ bool Tcpserver::StartServer(int IOthreadnum)
     PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
     PerIoData->DataBuf.len = DATA_BUFSIZE;
     PerIoData->sock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+    PerIoData->Type = 1;
     DWORD dwRecv = 0;
 
 
@@ -123,124 +124,138 @@ void Tcpserver::ProcessRead(LPVOID lpParam)
 
         }
 
-        //如果有新socket连接
-        if (csocket == ServerSocket)
+        if (PerIoData->Type == 1)
         {
-            SOCKADDR_IN* LocalAddr = nullptr;
-            SOCKADDR_IN* ClientAddr = nullptr;
-            int len = sizeof(SOCKADDR_IN);
-            GetAcceptExSockaddrs(PerIoData->DataBuf.buf, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, (LPSOCKADDR*)&LocalAddr, &len, (LPSOCKADDR*)&ClientAddr, &len);
+            //如果有新socket连接
+            if (csocket == ServerSocket)
+            {
+                SOCKADDR_IN* LocalAddr = nullptr;
+                SOCKADDR_IN* ClientAddr = nullptr;
+                int len = sizeof(SOCKADDR_IN);
+                GetAcceptExSockaddrs(PerIoData->DataBuf.buf, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, (LPSOCKADDR*)&LocalAddr, &len, (LPSOCKADDR*)&ClientAddr, &len);
 
-            //把客户端SOCKET加入进完成端口里
-            CreateIoCompletionPort((HANDLE)PerIoData->sock, CompletionPort, (DWORD)PerIoData->sock, 0);
+                //把客户端SOCKET加入进完成端口里
+                CreateIoCompletionPort((HANDLE)PerIoData->sock, CompletionPort, (DWORD)PerIoData->sock, 0);
 
 
-            // 传递接收事件
 
-            SOCKET temp = PerIoData->sock;
-            ZeroMemory(PerIoData, sizeof(PER_IO_OPERATION_DATA));
-            PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
-            PerIoData->DataBuf.len = DATA_BUFSIZE;
+                SERVERPRINT_INFO << "有新连接加入" << PerIoData->sock << std::endl;
+                // 传递接收事件
+
+                SOCKET temp = PerIoData->sock;
+                ZeroMemory(PerIoData, sizeof(PER_IO_OPERATION_DATA));
+                PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
+                PerIoData->DataBuf.len = DATA_BUFSIZE;
+                PerIoData->Type = 1;
+                DWORD Flags = 0;
+                DWORD dwRecv = 0;
+                WSARecv(temp, &PerIoData->DataBuf, 1, &dwRecv, &Flags, &PerIoData->Overlapped, NULL);
+
+
+
+                //继续传递连接事件
+                PerIoData = new PER_IO_OPERATION_DATA();
+                ZeroMemory(PerIoData, sizeof(PER_IO_OPERATION_DATA));
+                PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
+                PerIoData->DataBuf.len = DATA_BUFSIZE;
+                PerIoData->Type = 1;
+                PerIoData->sock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+
+
+                if (AcceptEx(ServerSocket, PerIoData->sock, PerIoData->DataBuf.buf, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &dwRecv, &PerIoData->Overlapped) == false)
+                {
+                    int error = WSAGetLastError();
+                    if (error != ERROR_IO_PENDING)
+                    {
+                        SERVERPRINT_ERROR << "投递服务器sock失败!" << std::endl;
+
+                    }
+                }
+
+                continue;
+            }
+            //连接关闭
+            if (BytesTransferred == 0)
+            {
+                SERVERPRINT_INFO << "客户端退出" << csocket << std::endl;
+                closesocket(csocket);
+                delete PerIoData;
+
+                continue;
+            }
+
+            //收到数据
+            if (BytesTransferred >= 8)
+            {
+                SERVERPRINT_INFO << "接收到数据" << BytesTransferred << "字节" << std::endl;
+                //处理数据
+                int head = -1;
+                int size = -1;
+
+                memcpy(&head, PerIoData->data, 4);
+                memcpy(&size, PerIoData->data + 4, 4);
+
+                SERVERPRINT_INFO << "头" << head << std::endl;
+                  switch (head)
+                {
+                case 1000:
+                {
+                    if (BytesTransferred < 52) break;
+                    char account[20];
+                    char password[20];
+                    unsigned int playersocket;
+                    memset(account, 0, 20);
+                    memset(password, 0, 20);
+                    memcpy(account, PerIoData->data + 8, 20);
+                    memcpy(password, PerIoData->data + 28, 20);
+                    memcpy(&playersocket, PerIoData->data + 48, 4);
+                    app::onLogin_1000(account, password, csocket, playersocket);
+                }
+                break;
+                case 1001:
+                {
+                    if (BytesTransferred < 52) break;
+                    char account[20];
+                    char password[20];
+                    unsigned int playersocket;
+                    memset(account, 0, 20);
+                    memset(password, 0, 20);
+                    memcpy(account, PerIoData->data + 8, 20);
+                    memcpy(password, PerIoData->data + 28, 20);
+
+                    memcpy(&playersocket, PerIoData->data + 48, 4);
+                    app::onRegister_1001(account, password, csocket, playersocket);
+                }
+                break;
+
+                default:
+                    break;
+                }
+
+
+
+            }
+            else if (BytesTransferred > 0)
+            {
+                SERVERPRINT_INFO << "接收到不全数据" << BytesTransferred << "字节" << endl;
+            }
             DWORD Flags = 0;
             DWORD dwRecv = 0;
-            WSARecv(temp, &PerIoData->DataBuf, 1, &dwRecv, &Flags, &PerIoData->Overlapped, NULL);
-
-
-
-            //继续传递连接事件
-            PerIoData = new PER_IO_OPERATION_DATA();
             ZeroMemory(PerIoData, sizeof(PER_IO_OPERATION_DATA));
             PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
             PerIoData->DataBuf.len = DATA_BUFSIZE;
-            PerIoData->sock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-
-
-            if (AcceptEx(ServerSocket, PerIoData->sock, PerIoData->DataBuf.buf, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &dwRecv, &PerIoData->Overlapped) == false)
-            {
-                int error = WSAGetLastError();
-                if (error != ERROR_IO_PENDING)
-                {
-                    SERVERPRINT_ERROR << "投递服务器sock失败!" << std::endl;
-
-                }
-            }
-
-            continue;
+            PerIoData->Type = 1;
+            WSARecv(csocket, &PerIoData->DataBuf, 1, &dwRecv, &Flags, &PerIoData->Overlapped, NULL);
         }
-        //连接关闭
-        if (BytesTransferred == 0)
+        else if (PerIoData->Type == 2)
         {
-            SERVERPRINT_INFO << "客户端退出" << csocket << std::endl;
-            closesocket(csocket);
+           if (PerIoData == nullptr)continue;
+           SERVERPRINT_INFO << "数据发送成功" << BytesTransferred << endl;
             delete PerIoData;
-
-            continue;
-        }
-
-        //收到数据
-        if (BytesTransferred >= 8)
-        {
-            SERVERPRINT_INFO << "接收到数据" << BytesTransferred  << "字节"<< std::endl;
-            //处理数据
-            int head = -1;
-            int size = -1;
-
-            memcpy(&head, PerIoData->data, 4);
-            memcpy(&size, PerIoData->data + 4, 4);
-
-            SERVERPRINT_INFO << "头" << head  << std::endl;
-            switch (head)
-            {
-            case 1000:
-            {
-                if (BytesTransferred < 56) break;
-                char account[20];
-                char password[20];
-                int index;
-                unsigned int playersocket;
-                memset(account, 0, 20);
-                memset(password, 0, 20);
-                memcpy(account, PerIoData->data + 8, 20);
-                memcpy(password, PerIoData->data + 28, 20);
-                memcpy(&index, PerIoData->data + 48, 4);
-                memcpy(&playersocket, PerIoData->data + 52, 4);
-                app::onLogin_1000(account, password, csocket,playersocket,index);
-            }
-                break;
-            case 1001:
-            {
-                if (BytesTransferred < 56) break;
-                char account[20];
-                char password[20];
-                int index;
-                unsigned int playersocket;
-                memset(account,0,20);
-                memset(password, 0, 20);
-                memcpy(account, PerIoData->data + 8, 20);
-                memcpy(password, PerIoData->data + 28, 20);
-                memcpy(&index, PerIoData->data + 48, 4);
-                memcpy(&playersocket, PerIoData->data + 52, 4);
-                app::onRegister_1001(account, password, csocket, playersocket, index);
-            }
-                break;
-          
-            default:
-                break;
-            }
-
-
+         
 
         }
-        else if(BytesTransferred > 0)
-        {
-            SERVERPRINT_INFO << "接收到不全数据" << BytesTransferred << "字节" << endl;
-        }
-        DWORD Flags = 0;
-        DWORD dwRecv = 0;
-        ZeroMemory(PerIoData, sizeof(PER_IO_OPERATION_DATA));
-        PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
-        PerIoData->DataBuf.len = DATA_BUFSIZE;
-        WSARecv(csocket, &PerIoData->DataBuf, 1, &dwRecv, &Flags, &PerIoData->Overlapped, NULL);
+
 
         
     }
@@ -253,13 +268,23 @@ void Tcpserver::ProcessRead(LPVOID lpParam)
 
 void Tcpserver::Send(SOCKET sendsocket, int head, char* sendbuffer, int sendbuffsize)
 {
-    char* buff = new char[sendbuffsize + 8];
-    memset(buff, 0, sendbuffsize + 8);
-    memcpy(buff, (char*)&head, 4);
-    memcpy(buff+4, (char*)&sendbuffsize, 4);
-    memcpy(buff + 8, sendbuffer, sendbuffsize);
+    SERVERPRINT_INFO << "正在发送信息" << sendsocket << "|" << head << std::endl;
+    int size = sendbuffsize + 8;
+    LPPER_IO_OPERATION_DATA PerIoData = new PER_IO_OPERATION_DATA();
+    ZeroMemory(PerIoData, sizeof(PER_IO_OPERATION_DATA));
+    PerIoData->DataBuf.buf = (char*)&(PerIoData->data);
+    PerIoData->DataBuf.len = size;
+    PerIoData->sock = sendsocket;
+    PerIoData->Type = 2;
+    DWORD Flags = 0;
+    DWORD sendedsize = 0;
+    memset(PerIoData->data, 0, size);
+    memcpy(PerIoData->data, (char*)&head, 4);
+    memcpy(PerIoData->data + 4, (char*)&sendbuffsize, 4);
+    memcpy(PerIoData->data + 8, sendbuffer, sendbuffsize);
 
-    send(sendsocket, buff, sendbuffsize + 8, 0);
-    delete[] buff;
+
+    WSASend(PerIoData->sock, &PerIoData->DataBuf, 1, &sendedsize, Flags, &PerIoData->Overlapped, NULL);
+
 
 }

@@ -5,7 +5,7 @@ namespace app
 {
 
 	//登录
-	void onLogin_1000(char* LogAccount, char* LogPassword,SOCKET gameserversocket, unsigned int playersocket, int index)
+	void onLogin_1000(char* LogAccount, char* LogPassword,SOCKET gameserversocket, SOCKET playersocket)
 	{
 		std::string account = LogAccount;
 		std::string password = LogPassword;
@@ -15,12 +15,12 @@ namespace app
 		{
 			std::cout << "登录查找为null" << std::endl;
 			//无相关账号返回登录结果  10001 + -1 + 玩家socket+ 玩家索引
-			char sendbuff[12];
+			char sendbuff[8];
 			int type = -1;
 			memcpy(sendbuff, (char*)&type, 4);
 			memcpy(sendbuff + 4, (char*)&playersocket, 4);
-			memcpy(sendbuff + 8, (char*)&index, 4);
-			__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 12);
+
+			__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 8);
 
 			std::cout << "登录失败" << std::endl;
 			return;
@@ -28,36 +28,35 @@ namespace app
 
 		if (strcmp(password.c_str(), mem->password) == 0)
 		{
-			std::cout << "登录成功" << std::endl;
-			std::cout << __DBManager << std::endl;
+			std::cout << "登录成功1"  << mem->ID<< "|" << gameserversocket<< "|" << playersocket << std::endl;
+
 
 			mem->Lastlogintime = time(NULL);
 			auto db = __DBManager->DBAccount;
 			auto buff = db->PopBuffer();
 			buff->begin(1000);
 			buff->s(mem->ID);
+			buff->s(gameserversocket);
+			buff->s(playersocket);
 
 
+	
+		
+		
 
 			db->PushToWorkThread(buff);
-			//成功返回登录结果  10001 + 玩家id + 玩家socket+ 玩家索引
-			char sendbuff[12];
-			memcpy(sendbuff, (char*)&mem->ID, 4);
-			memcpy(sendbuff+4, (char*)&playersocket, 4);
-			memcpy(sendbuff+8, (char*)&index, 4);
-			__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 12);
+
 			
 			
 			return;
 			
 		}
-		//密码错误返回登录结果  10001 + -2 + 玩家socket+ 玩家索引
-		char sendbuff[12];
+		//密码错误返回登录结果  10002 + -2 + 玩家socket
+		char sendbuff[8];
 		int type = -2;
 		memcpy(sendbuff, (char*)&type, 4);
 		memcpy(sendbuff + 4, (char*)&playersocket, 4);
-		memcpy(sendbuff + 8, (char*)&index, 4);
-		__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 12);
+		__TCPSERVER->Send(gameserversocket, 10002, sendbuff, 8);
 
 		std::cout << "登录失败" << std::endl;
 
@@ -65,7 +64,7 @@ namespace app
 	}
 
 	//注册
-	void onRegister_1001(char* RegAccount, char* RegPassword, SOCKET gameserversocket, unsigned int playersocket, int index)
+	void onRegister_1001(char* RegAccount, char* RegPassword, SOCKET gameserversocket, SOCKET playersocket)
 	{
 		std::string account = RegAccount;
 		std::string password = RegPassword;
@@ -74,13 +73,12 @@ namespace app
 		{
 			std::cout << "账号已存在" << std::endl;
 			int errid = -1;
-			char sendbuff[52];
+			char sendbuff[48];
 			memcpy(sendbuff, (char*)&errid, 4);
 			memcpy(sendbuff + 4, (char*)&account, 20);
 			memcpy(sendbuff + 24, (char*)&password, 20);
 			memcpy(sendbuff + 44, (char*)&playersocket, 4);
-			memcpy(sendbuff + 48, (char*)&index, 4);
-			__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 52);
+			__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 48);
 			return;
 		}
 
@@ -91,7 +89,6 @@ namespace app
 		buff->s((char*)password.c_str(), 20);
 		buff->s(gameserversocket);
 		buff->s(playersocket);
-		buff->s(index);
 		db->PushToWorkThread(buff);
 	}
 
@@ -114,10 +111,20 @@ namespace app
 	void db_1000(DBBuffer* buff)
 	{
 		int memid;
+		SOCKET serversocket;
+		SOCKET playersocket;
 		buff->r(memid);
-		SOCKET csocket;
-		buff->r(csocket);
-		cout << "登录成功" << memid << endl;
+		buff->r(serversocket);
+		buff->r(playersocket);
+		cout << "登录成功" << memid  << "|"  << serversocket << "|"<< playersocket << endl;
+
+
+		//成功返回登录结果  10001 + 玩家id + 玩家socket
+		char sendbuff[8];
+		memcpy(sendbuff, (char*)&memid, 4);
+		memcpy(sendbuff + 4, (char*)&playersocket, 4);
+		__TCPSERVER->Send(serversocket, 10001, sendbuff, 8);
+
 	    
 
 	}
@@ -130,7 +137,6 @@ namespace app
 		char password[20];
 		SOCKET gameserversocket;
 		unsigned int playersocket;
-		int index;
 		memset(account, 0, 20);
 		memset(password, 0, 20);
 		buff->r(memid);
@@ -138,7 +144,6 @@ namespace app
 		buff->r(password);
 		buff->r(gameserversocket);
 		buff->r(playersocket);
-		buff->r(index);
 		if (memid >= 0)  //注册成功操作
 		{
 			//插入内存中
@@ -159,13 +164,12 @@ namespace app
 		{
 			cout << "正在返回注册失败信息" << memid << " " << account << " " << password << endl;
 		}
-		char sendbuff[52];
+		char sendbuff[48];
 		memcpy(sendbuff, (char*)&memid, 4);
 		memcpy(sendbuff + 4, (char*)&account, 20);
 		memcpy(sendbuff + 24, (char*)&password, 20);
 		memcpy(sendbuff + 44, (char*)&playersocket, 4);
-		memcpy(sendbuff + 48, (char*)&index, 4);
-		__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 52);
+		__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 48);
 
 	}
 
