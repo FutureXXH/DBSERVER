@@ -67,6 +67,9 @@
     <ClInclude Include="IDefine.h">
       <Filter>TCPSERVER</Filter>
     </ClInclude>
+    <ClInclude Include="ConsoleColor.h">
+      <Filter>Share</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="app">
@@ -77,6 +80,9 @@
     </Filter>
     <Filter Include="TCPSERVER">
       <UniqueIdentifier>{9f796255-8f53-40fe-9442-40a77137ab88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Share">
+      <UniqueIdentifier>{69602321-d637-4657-9d47-76fff7ec07e7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

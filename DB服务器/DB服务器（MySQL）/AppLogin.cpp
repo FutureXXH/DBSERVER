@@ -13,7 +13,7 @@ namespace app
 		auto mem = Findmember(account);
 		if (mem == nullptr)
 		{
-			std::cout << "登录查找为null" << std::endl;
+			SERVERPRINT_WARNING  << "登录查找为null" << std::endl;
 			//无相关账号返回登录结果  10001 + -1 + 玩家socket+ 玩家索引
 			char sendbuff[8];
 			int type = -1;
@@ -22,13 +22,13 @@ namespace app
 
 			__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 8);
 
-			std::cout << "登录失败" << std::endl;
+			SERVERPRINT_INFO << "登录失败" << std::endl;
 			return;
 		}
 
 		if (strcmp(password.c_str(), mem->password) == 0)
 		{
-			std::cout << "登录成功1"  << mem->ID<< "|" << gameserversocket<< "|" << playersocket << std::endl;
+			//std::cout << "登录成功1"  << mem->ID<< "|" << gameserversocket<< "|" << playersocket << std::endl;
 
 
 			mem->Lastlogintime = time(NULL);
@@ -58,7 +58,7 @@ namespace app
 		memcpy(sendbuff + 4, (char*)&playersocket, 4);
 		__TCPSERVER->Send(gameserversocket, 10002, sendbuff, 8);
 
-		std::cout << "登录失败" << std::endl;
+		SERVERPRINT_INFO << "登录失败" << std::endl;
 
 
 	}
@@ -71,7 +71,7 @@ namespace app
 		auto mem = Findmember(account);
 		if (mem != nullptr)
 		{
-			std::cout << "账号已存在" << std::endl;
+			SERVERPRINT_INFO << "账号已存在" << std::endl;
 			int errid = -1;
 			char sendbuff[48];
 			memcpy(sendbuff, (char*)&errid, 4);
@@ -116,7 +116,7 @@ namespace app
 		buff->r(memid);
 		buff->r(serversocket);
 		buff->r(playersocket);
-		cout << "登录成功" << memid  << "|"  << serversocket << "|"<< playersocket << endl;
+		SERVERPRINT_INFO << "登录成功" << memid  << "|"  << serversocket << "|"<< playersocket << endl;
 
 
 		//成功返回登录结果  10001 + 玩家id + 玩家socket
@@ -156,13 +156,13 @@ namespace app
 
 			__AccountsID.insert(make_pair(memid, mem));
 
-			cout << "db1001 successful" << memid << " " << account << " " << password << endl;
-			cout << "正在返回注册成功信息" << memid << " " << account << " " << password << endl;
+			SERVERPRINT_INFO << "db1001 successful" << memid << " " << account << " " << password << endl;
+			SERVERPRINT_INFO << "正在返回注册成功信息" << memid << " " << account << " " << password << endl;
 
 		}
 		else  //注册失败操作
 		{
-			cout << "正在返回注册失败信息" << memid << " " << account << " " << password << endl;
+			SERVERPRINT_INFO << "正在返回注册失败信息" << memid << " " << account << " " << password << endl;
 		}
 		char sendbuff[48];
 		memcpy(sendbuff, (char*)&memid, 4);

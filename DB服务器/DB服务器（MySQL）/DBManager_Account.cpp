@@ -20,7 +20,7 @@ void DBManager::Thread_beginAccount()
 	int error = mysql->ExceQuery(sql.str());
 	if (error != 0)
 	{
-		cout << "[thread]" << DBAccount->GetThreadID() << "beginaccount error" << mysql->GetErrorCode() << mysql->GetErrorStr() << endl;
+		SERVERPRINT_ERROR << "[thread]" << DBAccount->GetThreadID() << "beginaccount error" << mysql->GetErrorCode() << mysql->GetErrorStr() << endl;
 
 		return;
 	}
@@ -44,7 +44,7 @@ void DBManager::Thread_beginAccount()
 	}
 	auto current = std::chrono::steady_clock::now();
 	auto duration = duration_cast<milliseconds>(current - start);
-	cout << "加载用户数据完成,用户账户大小" << app::__AccountsID.size() << "消耗时间" << duration.count() << endl;
+	SERVERPRINT_INFO << "加载用户数据完成,用户账户大小" << app::__AccountsID.size() << "消耗时间" << duration.count() << endl;
 
 }
 
@@ -69,7 +69,7 @@ void updateLoignTime(DBBuffer* buff,DBConnector* db)
 	int ret = mysql->ExceQuery(sql.str());
 	if (ret != 0)
 	{
-		cout << "loign 1000 failed:" << mysql->GetErrorStr() << " " << ret << endl;
+		SERVERPRINT_WARNING << "loign 1000 failed:" << mysql->GetErrorStr() << " " << ret << endl;
 		return;
 	}
 	//cout << "更新时间成功 " << memid << endl;
@@ -127,7 +127,7 @@ void RegAccount(DBBuffer* buff, DBConnector* db)
 	}
 
 
-	cout << "注册成功" << endl;
+	SERVERPRINT_INFO << "注册成功" << account << endl;
 
 	int memid = mysql->GetMysql()->insert_id;
 

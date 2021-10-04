@@ -35,6 +35,7 @@
   <ItemGroup>
     <ClInclude Include="AppLogin.h" />
     <ClInclude Include="AppManager.h" />
+    <ClInclude Include="ConsoleColor.h" />
     <ClInclude Include="DBBuffer.h" />
     <ClInclude Include="DBConnector.h" />
     <ClInclude Include="DBManager.h" />

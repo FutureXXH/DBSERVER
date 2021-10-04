@@ -6,6 +6,7 @@
 #include "DBBuffer.h"
 #include "DBConnector.h"
 #include "AppLogin.h"
+#include "IDefine.h"
 namespace db
 {
 	class DBManager

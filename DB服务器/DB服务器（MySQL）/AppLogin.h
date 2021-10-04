@@ -4,6 +4,7 @@
 #include "DBManager.h"
 #include "TCPserver.h"
 #include <string>
+#include "IDefine.h"
 
 namespace app
 {
