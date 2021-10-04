@@ -6,11 +6,11 @@
 
 在架构上还在改进ing
 
-1.只用mysql类型结构  
+#1.只用mysql类型结构  
 
 源码为VS项目文件 Windows平台运行
 ![DB服务端结构2](https://user-images.githubusercontent.com/60800578/134811195-92452cd3-f17c-423a-a104-985d20a57d41.png)
 
 
-2.mysql + redis配合类型 结构
+#2.mysql + redis配合类型 结构
 先挖个坑以后填~~
