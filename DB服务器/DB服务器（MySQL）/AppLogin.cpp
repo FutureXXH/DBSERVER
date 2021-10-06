@@ -10,6 +10,8 @@ namespace app
 		std::string account = LogAccount;
 		std::string password = LogPassword;
 
+
+		SERVERPRINT_INFO << "账号登录：" << account << "|" << password << endl;
 		auto mem = Findmember(account);
 		if (mem == nullptr)
 		{
@@ -51,12 +53,12 @@ namespace app
 			return;
 			
 		}
-		//密码错误返回登录结果  10002 + -2 + 玩家socket
+		//密码错误返回登录结果  10001 + -2 + 玩家socket
 		char sendbuff[8];
 		int type = -2;
 		memcpy(sendbuff, (char*)&type, 4);
 		memcpy(sendbuff + 4, (char*)&playersocket, 4);
-		__TCPSERVER->Send(gameserversocket, 10002, sendbuff, 8);
+		__TCPSERVER->Send(gameserversocket, 10001, sendbuff, 8);
 
 		SERVERPRINT_INFO << "登录失败" << std::endl;
 
