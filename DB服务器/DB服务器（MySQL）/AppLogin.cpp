@@ -65,8 +65,8 @@ namespace app
 
 	}
 
-	//注册
-	void onRegister_1001(char* RegAccount, char* RegPassword, SOCKET gameserversocket, SOCKET playersocket)
+	//注册  -1 存在  -2 错误  
+	void onRegister_2000(char* RegAccount, char* RegPassword, SOCKET gameserversocket, SOCKET playersocket)
 	{
 		std::string account = RegAccount;
 		std::string password = RegPassword;
@@ -75,18 +75,16 @@ namespace app
 		{
 			SERVERPRINT_INFO << "账号已存在" << std::endl;
 			int errid = -1;
-			char sendbuff[48];
+			char sendbuff[8];
 			memcpy(sendbuff, (char*)&errid, 4);
-			memcpy(sendbuff + 4, (char*)&account, 20);
-			memcpy(sendbuff + 24, (char*)&password, 20);
-			memcpy(sendbuff + 44, (char*)&playersocket, 4);
-			__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 48);
+			memcpy(sendbuff +4, (char*)&playersocket, 4);
+			__TCPSERVER->Send(gameserversocket, 20001, sendbuff, 8);
 			return;
 		}
 
 		auto db = __DBManager->DBAccount;
 		auto buff = db->PopBuffer();
-		buff->begin(1001);
+		buff->begin(2000);
 		buff->s((char*)account.c_str(),20);
 		buff->s((char*)password.c_str(), 20);
 		buff->s(gameserversocket);
@@ -131,7 +129,7 @@ namespace app
 
 	}
 
-	void db_1001(DBBuffer* buff)
+	void db_2000(DBBuffer* buff)
 	{
 
 		int memid;
@@ -157,8 +155,8 @@ namespace app
 			mem->Lastlogintime = time(NULL);
 
 			__AccountsID.insert(make_pair(memid, mem));
+			__AccountsName.insert(make_pair(account, mem));
 
-			SERVERPRINT_INFO << "db1001 successful" << memid << " " << account << " " << password << endl;
 			SERVERPRINT_INFO << "正在返回注册成功信息" << memid << " " << account << " " << password << endl;
 
 		}
@@ -166,12 +164,10 @@ namespace app
 		{
 			SERVERPRINT_INFO << "正在返回注册失败信息" << memid << " " << account << " " << password << endl;
 		}
-		char sendbuff[48];
+		char sendbuff[8];
 		memcpy(sendbuff, (char*)&memid, 4);
-		memcpy(sendbuff + 4, (char*)&account, 20);
-		memcpy(sendbuff + 24, (char*)&password, 20);
-		memcpy(sendbuff + 44, (char*)&playersocket, 4);
-		__TCPSERVER->Send(gameserversocket, 10011, sendbuff, 48);
+		memcpy(sendbuff + 4, (char*)&playersocket, 4);
+		__TCPSERVER->Send(gameserversocket, 20001, sendbuff, 8);
 
 	}
 
@@ -188,8 +184,8 @@ namespace app
 		case 1000:
 			db_1000(buff);
 			break;
-		case 1001:
-			db_1001(buff);
+		case 2000:
+			db_2000(buff);
 			break;
 		default:
 			break;

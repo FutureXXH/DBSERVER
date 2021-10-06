@@ -115,7 +115,7 @@ void RegAccount(DBBuffer* buff, DBConnector* db)
 		cout << "reg 1001 failed:" << mysql->GetErrorStr() << " " << ret << endl;
 		auto buf2 = __DBManager->Popbuff();
 		int errid = -2;
-		buf2->begin(1001);
+		buf2->begin(2000);
 		buf2->s(errid);
 		buf2->s(account, 20);
 		buf2->s(password, 20);
@@ -132,7 +132,7 @@ void RegAccount(DBBuffer* buff, DBConnector* db)
 	int memid = mysql->GetMysql()->insert_id;
 
 	auto buf2 = __DBManager->Popbuff();
-	buf2->begin(1001);
+	buf2->begin(2000);
 	buf2->s(memid);
 	buf2->s(account, 20);
 	buf2->s(password, 20);
@@ -154,7 +154,7 @@ void DBManager::Thread_UserAccount(DBBuffer* buff)
 	case 1000:
 		updateLoignTime(buff, DBAccount);
 		break;
-	case 1001:
+	case 2000:
 		RegAccount(buff, DBAccount);
 		break;
 
