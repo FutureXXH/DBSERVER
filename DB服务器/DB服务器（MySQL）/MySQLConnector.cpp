@@ -188,7 +188,7 @@ bool db::MysqlConnector::ReConnect()
     //开始连接
     auto m  = mysql_real_connect(mysql, m_ip, m_username, m_userpassword, m_DBname, m_port, NULL, CLIENT_MULTI_STATEMENTS);
 
-    if (m = NULL)
+    if (m == NULL)
     {
         std::cout << "连接错误:" << GetErrorStr() <<std::endl;
         isconnect = false;
